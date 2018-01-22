@@ -1,20 +1,23 @@
 defmodule Metex.Worker do
-
   def loop do
     receive do
       {sender_pid, location} ->
         send(sender_pid, {:ok, temperature_of(location)})
+
       _ ->
-        IO.puts "don't know how to process this message"
+        IO.puts("don't know how to process this message")
     end
-    loop
+
+    loop()
   end
 
-  defp temperature_of(location) do
-    result = url_for(location) |> HTTPoison.get |> parse_response
+  def temperature_of(location) do
+    result = location |> url_for |> HTTPoison.get() |> parse_resp
+
     case result do
       {:ok, temp} ->
         "#{location}: #{temp}°C"
+
       :error ->
         "#{location} not found"
     end
@@ -22,14 +25,14 @@ defmodule Metex.Worker do
 
   defp url_for(location) do
     location = URI.encode(location)
-    "http://api.openweathermap.org/data/2.5/weather?q=#{location}&appid=#{apikey}"
+    "http://api.openweathermap.org/data/2.5/weather?q=#{location}&appid=#{apiKey()}"
   end
 
-  defp parse_response({:ok, %HTTPoison.Response{body: body, status_code: 200}}) do
-    body |> JSON.decode! |> compute_temperature
+  defp parse_resp({:ok, %HTTPoison.Response{status_code: 200, body: body}}) do
+    body |> JSON.decode!() |> compute_temperature
   end
 
-  defp parse_response(_) do
+  defp parse_resp(_) do
     :error
   end
 
@@ -42,8 +45,7 @@ defmodule Metex.Worker do
     end
   end
 
-  defp apikey do
-    Application.fetch_env!(:metex, :api_key)
+  defp apiKey do
+    Application.get_env(:metex, :api_key)
   end
-
 end
