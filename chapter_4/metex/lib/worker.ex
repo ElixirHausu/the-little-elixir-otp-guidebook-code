@@ -38,7 +38,6 @@ defmodule Metex.Worker do
         {:reply, "#{temp}°C", new_stats}
 
       _ ->
-
         {:reply, :error, stats}
     end
   end
@@ -57,32 +56,32 @@ defmodule Metex.Worker do
 
   def terminate(reason, stats) do
     # We could write to a file, database etc
-    IO.puts "server terminated because of #{inspect reason}"
-    inspect stats
+    IO.puts("server terminated because of #{inspect(reason)}")
+    inspect(stats)
     :ok
   end
 
   def handle_info(msg, stats) do
-    IO.puts "received #{inspect msg}"
+    IO.puts("received #{inspect(msg)}")
     {:noreply, stats}
   end
 
   ## Helper Functions
 
   defp temperature_of(location) do
-    url_for(location) |> HTTPoison.get |> parse_response
+    location |> url_for |> HTTPoison.get() |> parse_resp
   end
 
   defp url_for(location) do
     location = URI.encode(location)
-    "http://api.openweathermap.org/data/2.5/weather?q=#{location}&appid=#{apikey}"
+    "http://api.openweathermap.org/data/2.5/weather?q=#{location}&appid=#{apikey()}"
   end
 
-  defp parse_response({:ok, %HTTPoison.Response{body: body, status_code: 200}}) do
-    body |> JSON.decode! |> compute_temperature
+  defp parse_resp({:ok, %HTTPoison.Response{status_code: 200, body: body}}) do
+    body |> JSON.decode!() |> compute_temperature
   end
 
-  defp parse_response(_) do
+  defp parse_resp(_) do
     :error
   end
 
@@ -99,13 +98,13 @@ defmodule Metex.Worker do
     case Map.has_key?(old_stats, location) do
       true ->
         Map.update!(old_stats, location, &(&1 + 1))
+
       false ->
         Map.put_new(old_stats, location, 1)
     end
   end
 
   defp apikey do
-    Application.fetch_env!(:metex, :api_key)
+    Application.get_env(:metex, :api_key)
   end
-
 end
