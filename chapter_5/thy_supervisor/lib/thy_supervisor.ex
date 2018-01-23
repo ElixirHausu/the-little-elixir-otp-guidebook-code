@@ -35,9 +35,11 @@ defmodule ThySupervisor do
 
   def init([child_spec_list]) do
     Process.flag(:trap_exit, true)
-    state = child_spec_list
-              |> start_children
-              |> Enum.into(%{})
+
+    state =
+      child_spec_list
+      |> start_children
+      |> Enum.into(%{})
 
     {:ok, state}
   end
@@ -47,6 +49,7 @@ defmodule ThySupervisor do
       {:ok, pid} ->
         new_state = state |> Map.put(pid, child_spec)
         {:reply, {:ok, pid}, new_state}
+
       :error ->
         {:reply, {:error, "error starting child"}, state}
     end
@@ -57,6 +60,7 @@ defmodule ThySupervisor do
       :ok ->
         new_state = state |> Map.delete(pid)
         {:reply, :ok, new_state}
+
       :error ->
         {:reply, {:error, "error terminating child"}, state}
     end
@@ -67,13 +71,17 @@ defmodule ThySupervisor do
       {:ok, child_spec} ->
         case restart_child(old_pid, child_spec) do
           {:ok, {pid, child_spec}} ->
-            new_state = state
-                          |> Map.delete(old_pid)
-                          |> Map.put(pid, child_spec)
+            new_state =
+              state
+              |> Map.delete(old_pid)
+              |> Map.put(pid, child_spec)
+
             {:reply, {:ok, pid}, new_state}
+
           :error ->
             {:reply, {:error, "error restarting child"}, state}
         end
+
       _ ->
         {:reply, :ok, state}
     end
@@ -102,13 +110,17 @@ defmodule ThySupervisor do
       {:ok, child_spec} ->
         case restart_child(old_pid, child_spec) do
           {:ok, {pid, child_spec}} ->
-            new_state = state
-                          |> Map.delete(old_pid)
-                          |> Map.put(pid, child_spec)
+            new_state =
+              state
+              |> Map.delete(old_pid)
+              |> Map.put(pid, child_spec)
+
             {:noreply, new_state}
+
           :error ->
             {:noreply, state}
         end
+
       _ ->
         {:noreply, state}
     end
@@ -123,10 +135,11 @@ defmodule ThySupervisor do
   # Private Functions #
   #####################
 
-  defp start_children([child_spec|rest]) do
+  defp start_children([child_spec | rest]) do
     case start_child(child_spec) do
       {:ok, pid} ->
-        [{pid, child_spec}|start_children(rest)]
+        [{pid, child_spec} | start_children(rest)]
+
       :error ->
         :error
     end
@@ -139,6 +152,7 @@ defmodule ThySupervisor do
       pid when is_pid(pid) ->
         Process.link(pid)
         {:ok, pid}
+
       _ ->
         :error
     end
@@ -163,12 +177,13 @@ defmodule ThySupervisor do
         case start_child(child_spec) do
           {:ok, new_pid} ->
             {:ok, {new_pid, child_spec}}
+
           :error ->
             :error
         end
+
       :error ->
         :error
     end
   end
-
 end
