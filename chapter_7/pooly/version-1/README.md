@@ -1,11 +1,10 @@
-Pooly
-=====
+# Pooly
 
 ![](http://i.imgur.com/NobRZq0.png)
 
 > Definition of POOLY
 >
->   having many pools
+> having many pools
 >
 > – Merriam-Webster Dictionary
 
@@ -13,7 +12,7 @@ _Pooly_ is a worker pool library inspired by other Erlang worker pool libraries 
 
 The whole point of this exercise is to make this project a part of the example project in Chapter 6 of the [book](http://www.exotpbook.com).
 
-## API 
+## API
 
 ```elixir
 alias Pooly, as: P
@@ -113,7 +112,6 @@ Pool.start_pool(:some_worker_pool, {SomeWorker, :start_link, []})
 
 This creates a `Pooly.WorkerSupervisor` with a `:simple_one_for_one` strategy that essentially makes it a `SomeWorker` process factory. This is the _final_ state of the supervision tree, with no workers started yet.
 
-
 ```
               [Pooly.Supervisor]
                 /            \
@@ -154,7 +152,6 @@ When done, it the consumer of the worker pid (the process that did the previousl
 Pooly.checkin(:some_worker_pool, worker_pid)
 ```
 
-
 ### Server state
 
 At the end of this iteration, the server state should look like:
@@ -170,7 +167,7 @@ defmodule State do
 
 ### Running it
 
-__TODO:__ _Create a sample worker and put `Pooly` through its paces_
+**TODO:** _Create a sample worker and put `Pooly` through its paces_
 
 # Version 2
 
@@ -183,7 +180,7 @@ __TODO:__ _Create a sample worker and put `Pooly` through its paces_
 
 ### Linking
 
-Besides checking in a worker, the worker could crash too. Othertimes, the worker could exit normally.  Since the supervisor stance on restarting crashed workers is `:temporary`, this means that workers are never restarted. That's because in general we never know whether a worker should be restarted. While you can build this into the implementation like having it as a setting, we will keep it simple. 
+Besides checking in a worker, the worker could crash too. Othertimes, the worker could exit normally. Since the supervisor stance on restarting crashed workers is `:temporary`, this means that workers are never restarted. That's because in general we never know whether a worker should be restarted. While you can build this into the implementation like having it as a setting, we will keep it simple.
 
 In order to handle these various situations, we need to know when something happens to a checked out worker process. Our worker processes should crash too if the server crashes. Links (and trapping exits) are perfect for this. What should happen when a worker crashes? Well, the pool should automatically create a new worker, no questions asked.
 
@@ -219,7 +216,6 @@ The most straight forward way would be to design the supervision tree like so:
 ### Error Kernels and Error Isolation
 
 We are essentially sticking more `WorkerSupervisor`'s into `Pooly.Supervisor`. This is a bad design. The issue here is the _error kernel_. Issues with any of the `WorkerSupervisor`s shouldn't affect the `Pooly.Server`. (More reasons needed, separation of concerns). It pays to think about what happens when a process crashes and who gets affected.
-
 
 The fix is to add another supervisor to handle all the worker supervisors, say a `Pooly.WorkersSupervisor`. This _might_ design we are shooting for:
 
@@ -277,7 +273,6 @@ In order words, this is how we want the design to look like:
 
 The `Pooly.PoolStarter` process is a simple GenServer that is stateless, since there is not need for it to keep any.
 
-
 ### Server state
 
 ```elixir
@@ -299,7 +294,7 @@ end
 
 * Transactions
 * Overflowing of workers
-* Waiting and Queuing 
+* Waiting and Queuing
 
 ### Implementing automatic checkout/checkin with transactions
 
